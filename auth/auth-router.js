@@ -23,8 +23,48 @@ router.post("/register", (req, res) => {
     .catch(err => res.json({message: err.message}));
 });
 
+router.post("/login", (req, res) => {
+    const credentials = req.body
+    
+      Users.findBy({username: credentials.username})
+      .then(users => {
+        const user = users[0]
+
+        if(user && bcrypt.compareSync(credentials.password, user.password)){
+            //username & password are good
+            req.session.username = user.username
+            res.status(200).json({
+                message: 'welcome',
+                username: req.username})
+        }else{
+            res.status(401).json({message: 'invalid credentials'})
+        }
+      })
+      .catch(err => res.json({message: err.message}));
+  });
+
+router.get('/logout', (req, res) => {
+    if(req.session){
+        req.session.destroy(error => {
+            if(error){
+                res.status(500).json({message: 'logout failed, please try later'})
+            }else{
+                res.status(204).end()
+            }
+        })
+    }else{
+        res.status(204).end()//204 = no content
+    }
+})
+
 module.exports = router;
 
 // "id": 1,
 // "username": "sam",
 // "password": "$2b$06$pAvJ2J8Fjz0ua1p0jUpWDuRlqoiBCqQjSH3hRK1qPilmiLVc1yJ8e",
+// "role": "1"
+
+// "id": 2,
+// "username": "frodo",
+// "password": "$2b$06$2wbWCbsJR3yQEL12RH6fJ.sP/Qs7F6jJlV7GkUzM2CUlsnoUkj88y",
+// "role": 2
